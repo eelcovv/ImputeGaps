@@ -64,15 +64,11 @@ def fill_missing_data(
     if how == "mean":
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            imputed_values = np.full(
-                mask_is_na.size, fill_value=valid_donor_records.mean()
-            )
+            imputed_values = np.full(mask_is_na.size, fill_value=valid_donor_records.mean())
     elif how == "median":
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            imputed_values = np.full(
-                mask_is_na.size, fill_value=valid_donor_records.median()
-            )
+            imputed_values = np.full(mask_is_na.size, fill_value=valid_donor_records.median())
     elif how == "mode":
         mode = valid_donor_records.mode()[0]
         imputed_values = np.full(mask_is_na.size, fill_value=mode)
@@ -204,7 +200,7 @@ class ImputeGaps:
         """
 
         original_indices = records_df.index.names
-        records_df.reset_index(inplace=True)
+        records_df = records_df.reset_index()
         number_of_dimensions = len(group_by)
 
         # add one to number of dimensions because you add the index key
@@ -223,14 +219,10 @@ class ImputeGaps:
             if self.imputed_df is None and self.track_imputed:
                 self.imputed_df = records_df.isna()
             elif self.imputed_df is not None and self.track_imputed:
-                self.imputed_df = self.imputed_df.reset_index().set_index(
-                    index_for_group_by
-                )
+                self.imputed_df = self.imputed_df.reset_index().set_index(index_for_group_by)
 
             # Impute missing values for the new index
-            records_df = self.impute_gaps_for_dimensions(
-                records_df, group_by=group_by_indices
-            )
+            records_df = self.impute_gaps_for_dimensions(records_df, group_by=group_by_indices)
 
             # after each iteration, reset the index
             records_df.reset_index(inplace=True)
@@ -290,14 +282,8 @@ class ImputeGaps:
             skip_variable_type = self.imputation_methods.get("skip")
 
             # Check if the variable has a 'no_impute' flag or if its type should not be imputed
-            if no_impute or (
-                skip_variable_type is not None and var_type in skip_variable_type
-            ):
-                logger.debug(
-                    "Skip imputing variable {} of var type {}".format(
-                        col_name, var_type
-                    )
-                )
+            if no_impute or (skip_variable_type is not None and var_type in skip_variable_type):
+                logger.debug("Skip imputing variable {} of var type {}".format(col_name, var_type))
                 continue
 
             # Get filter(s) if provided
@@ -366,9 +352,7 @@ class ImputeGaps:
             # Get which imputing method to use
             # TODO: Evt. veranderen en inbouwen dat je bijv. voor bools en dict geen mean en median kunt imputeren etc.
             imputation_dict = self.imputation_methods
-            not_none = [
-                i for i in imputation_dict.keys() if imputation_dict[i] is not None
-            ]
+            not_none = [i for i in imputation_dict.keys() if imputation_dict[i] is not None]
 
             impute_method = variable_properties.get("impute_method")
             if impute_method is not None:
@@ -414,9 +398,7 @@ class ImputeGaps:
             # Iterate over the variables in the group_by-list and try to impute until there are no
             # more missing values
             if group_by:
-                df_grouped = col_to_impute.groupby(
-                    group_by, group_keys=False
-                )  # Do group by
+                df_grouped = col_to_impute.groupby(group_by, group_keys=False)  # Do group by
                 col_to_impute = df_grouped.apply(fill_gaps)  # Impute missing values
             else:
                 # for imputation on the whole column, we don't need to apply but just fill_gaps
@@ -445,9 +427,7 @@ class ImputeGaps:
                 )
             elif number_of_nans_after == 0:
                 column_size = col_to_impute.size
-                percentage_replaced = round(
-                    100 * number_of_nans_before / column_size, 1
-                )
+                percentage_replaced = round(100 * number_of_nans_before / column_size, 1)
                 logger.info(
                     f"Imputing {col_name} in stratum {group_by} - Successfully imputed all {number_of_nans_before}/{column_size} "
                     f"({percentage_replaced:.1f} %) gaps."
@@ -458,6 +438,8 @@ class ImputeGaps:
                 )
 
             # Replace original column by imputed column
-            records_df[col_name] = records_df[col_name].where(records_df[col_name].notna(), col_to_impute.astype(start_type))
+            records_df[col_name] = records_df[col_name].where(
+                records_df[col_name].notna(), col_to_impute.astype(start_type)
+            )
 
         return records_df
