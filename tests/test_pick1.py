@@ -26,7 +26,7 @@ def test_float():
     """
     records_df = pd.DataFrame(
         [
-            [1, 1, "A", "10", '1.0'],
+            [1, 1, "A", "10", 1.0],
             [2, 1, "A", "10", 2.2],
             [3, 2, "A", "10", 3.3],
             [4, 2, "A", "10", 4.4],
@@ -39,6 +39,7 @@ def test_float():
         ],
         columns=["be_id", "internet", "sbi", "gk", "telewerkers"],
     )
+    records_df_copy = records_df.copy()
     variables = {
         "telewerkers": {
             "type": "float",
@@ -58,10 +59,14 @@ def test_float():
     )
 
     # Expected
-    expected = pd.Series([1, 2.2, 3.3, 4.4, 1, 1, 1], copy=False, name="telewerkers")
+    new_telewerkers = new_records["telewerkers"]
+    expected_telewerkers = pd.Series([1, 2.2, 3.3, 4.4, 1, 1, 1], copy=False, name="telewerkers")
 
     # Test uitvoeren
-    pd.testing.assert_series_equal(new_records["telewerkers"], expected)
+    pd.testing.assert_series_equal(new_telewerkers, expected_telewerkers)
+
+    # Test whether the input records_df has not been modified
+    pd.testing.assert_frame_equal(records_df_copy, records_df)
 
 
 def test_percentage():
@@ -228,12 +233,11 @@ def test_met_filter():
     )
 
     # Expected
-    expected = pd.Series(
-        [float(1), 2, 3, 4, None, 1, 1], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([float(1), 2, 3, 4, None, 1, 1], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)
+
 
 def test_met_impute_only():
     """
@@ -267,9 +271,7 @@ def test_met_impute_only():
     )
 
     # Expected
-    expected = pd.Series(
-        [float(1), 2, 3, 4, None, 1, 1], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([float(1), 2, 3, 4, None, 1, 1], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)

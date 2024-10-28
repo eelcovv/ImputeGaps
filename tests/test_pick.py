@@ -1,4 +1,3 @@
-import pytest
 import pandas as pd
 from imputegaps.impute_gaps import ImputeGaps
 
@@ -58,9 +57,7 @@ def test_float():
     )
 
     # Expected
-    expected = pd.Series(
-        [1.1, 2.2, 3.3, 4.4, 1.1, 1.1, 4.4], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([1.1, 2.2, 3.3, 4.4, 1.1, 1.1, 4.4], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)
@@ -104,9 +101,7 @@ def test_percentage():
     )
 
     # Expected
-    expected = pd.Series(
-        [1.1, 2.2, 3.3, 4.4, 1.1, 1.1, 4.4], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([1.1, 2.2, 3.3, 4.4, 1.1, 1.1, 4.4], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)
@@ -158,7 +153,7 @@ def test_bool():
 
 def test_dict():
     """
-    Test voor var_type 'bool' met imputatiemethode 'pick'
+    Test for var_type 'bool' with imputation method 'pick'
     """
     records_df = pd.DataFrame(
         [
@@ -194,10 +189,12 @@ def test_dict():
     )
 
     # Expected
-    expected = pd.Series([1, 2, 3, 4, 1, 1, 4], copy=False, name="telewerkers")
+    # The expected values are floats as the initial values are floats due to the Nones
+    expected_telewerkers = pd.Series([1.0, 2, 3, 4, 1, 1, 4], copy=False, name="telewerkers")
+    new_telewerkers = new_records["telewerkers"]
 
     # Test uitvoeren
-    pd.testing.assert_series_equal(new_records["telewerkers"], expected)
+    pd.testing.assert_series_equal(new_telewerkers, expected_telewerkers)
 
 
 def test_met_filter():
@@ -232,9 +229,7 @@ def test_met_filter():
     )
 
     # Expected
-    expected = pd.Series(
-        [float(1), 2, 3, 4, None, 1, 2], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([float(1), 2, 3, 4, None, 1, 2], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)
