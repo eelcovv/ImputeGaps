@@ -9,14 +9,17 @@ logger = logging.getLogger(__name__)
 
 DataFrameType = Union["DataFrame", None]
 DataFrameLikeType = Union["DataFrame", "Series", None]
+SeriesType = Union["Series"]
 
 
-def fill_missing_data(col, how, seed=None) -> DataFrameLikeType:
+def fill_missing_data(
+    stratum, invalid_donors, col_name, how, min_threshold, seed=None
+) -> DataFrameLikeType:
     """Impute missing values for one variable of a particular stratum (subset)
 
     Parameters
     ----------
-    col: pd.Series
+    stratum: pd.Series
         pd.Series with one column that contains missing values.
     how: String {"mean", "median", "pick", "nan", "pick1"},
         Method that should be used to fill the missing values;
@@ -30,76 +33,81 @@ def fill_missing_data(col, how, seed=None) -> DataFrameLikeType:
 
     Returns
     -------
-    imputed_col: DataFrameLikeType
+    stratum_to_impute: DataFrameLikeType
         Series with imputed values
 
     """
-    imputed_col = col.copy()
+    stratum_to_impute = stratum.copy()
+    invalid_donors = invalid_donors
 
-    # Create a mask with the size of a column with True for all missing values
-    mask = imputed_col.isnull()
+    # Create a mask with True for all missing values
+    mask_is_na = stratum_to_impute.isnull()
 
     # Skip if there are no missing values
-    if not mask.any():
-        return imputed_col
+    if not mask_is_na.any():
+        return stratum_to_impute
 
-    # Fill missing values depending on which method to use
+    # If applicable, only select valid donor records (i.e. if track records with imputed values)
+    if invalid_donors is not None:
+        overlap_index = invalid_donors.index.intersection(stratum_to_impute.index)
+        mask_invalid_donors = invalid_donors.reindex(overlap_index)
+        valid_donor_records = stratum_to_impute[~mask_is_na & ~mask_invalid_donors]
+    else:
+        valid_donor_records = stratum_to_impute[~mask_is_na]
+
+    # If the number of valid donors is smaller than the min_threshold, imputation is not possible
+    # This only applies to mean, mode and pick, because the other methods do not rely on donor records
+    if valid_donor_records.size < min_threshold and how in ["mean", "mode", "pick"]:
+        return stratum_to_impute
+
+    # Impute depending on which method to use
     if how == "mean":
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            samples = np.full(mask.size, fill_value=imputed_col.mean())
+            imputed_values = np.full(
+                mask_is_na.size, fill_value=valid_donor_records.mean()
+            )
     elif how == "median":
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            samples = np.full(mask.size, fill_value=imputed_col.median())
+            imputed_values = np.full(
+                mask_is_na.size, fill_value=valid_donor_records.median()
+            )
     elif how == "mode":
-        # Try to get mode
-        try:
-            fill_val = imputed_col.mode()[0]
-        # Mode cannot be obtained when all values in that stratum are missing
-        except KeyError:
-            fill_val = np.nan
-        samples = np.full(mask.size, fill_value=fill_val)
+        mode = valid_donor_records.mode()[0]
+        imputed_values = np.full(mask_is_na.size, fill_value=mode)
     elif how == "nan":
-        samples = np.full(imputed_col.isnull().sum(), fill_value=0)
-    elif how == "pick1":
-        # Let pick1 work with values that are '1.0 and 0.0'.
         try:
-            valid_values = imputed_col.cat.categories
-            if "1.0" in valid_values:
-                samples = np.full(imputed_col.isnull().sum(), fill_value="1.0")
-            elif valid_values.dtype == "object":
-                imputed_col = imputed_col.cat.add_categories("1.0")
-                samples = np.full(imputed_col.isnull().sum(), fill_value="1.0")
-            elif 1 in valid_values:
-                samples = np.full(imputed_col.isnull().sum(), fill_value=1)
-            else:
-                imputed_col = imputed_col.cat.add_categories(1)
-                samples = np.full(imputed_col.isnull().sum(), fill_value=1)
+            stratum_to_impute = stratum_to_impute.cat.add_categories(["0.0"])
+        except AttributeError or ValueError:
+            pass
+        imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value="0.0")
+    elif how == "pick1":
+        try:
+            stratum_to_impute = stratum_to_impute.cat.add_categories(["1.0"])
         except AttributeError:
-            if "1.0" in imputed_col[~mask].values:
-                samples = np.full(imputed_col.isnull().sum(), fill_value="1.0")
-            else:
-                samples = np.full(imputed_col.isnull().sum(), fill_value=1.0)
+            pass
+        except ValueError:
+            pass
+        imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value="1.0")
     elif how == "pick":
         if seed == 1:
             # only for seed is 1 we imposed every time we enter a new cell. Generates less random results
             # but useful for reproduction of the data
             np.random.seed(seed)
-        number_of_nans = mask.sum()
-        valid_values = imputed_col[~mask].values
-        if valid_values.size == 0:
-            return imputed_col
-        else:
-            samples = np.random.choice(valid_values, size=number_of_nans, replace=True)
+        number_of_nans = mask_is_na.sum()
+        imputed_values = np.random.choice(
+            valid_donor_records.values, size=number_of_nans, replace=True
+        )
     else:
-        raise ValueError("Not a valid choice for how {}.".format(how))
-    # Fill the missing values with the values from samples
-    if samples.size > 1:
-        imputed_col[mask] = samples
+        raise ValueError("Not a valid imputation method: {}.".format(how))
+
+    # Fill the missing values with the values from imputed_values
+    if imputed_values.size > 1:
+        stratum_to_impute[mask_is_na] = imputed_values
     else:
-        imputed_col.loc[mask] = samples
-    return imputed_col
+        stratum_to_impute.loc[mask_is_na] = imputed_values
+    return stratum_to_impute
 
 
 class ImputeGaps:
@@ -141,20 +149,21 @@ class ImputeGaps:
         imputation_methods: dict | None = None,
         variables: dict | None = None,
         seed: int = None,
+        track_imputed: bool = False,
+        min_threshold: int | None = 1,
     ):
 
         self.index_key = index_key
-
-        # self.group_by = self.impute_settings["group_by"].split("; ")
         self.imputation_methods = imputation_methods
-
         self.seed = seed
+        self.track_imputed = track_imputed
+        self.min_threshold = min_threshold
+        self.variables = variables
+        self.imputed_df = None
 
         if self.seed is not None:
             # Set seed for random number generator. Only needs to be done one time
             np.random.seed(seed)
-
-        self.variables = variables
 
     def impute_gaps(
         self,
@@ -199,8 +208,17 @@ class ImputeGaps:
             # set index before imputations
             records_df.set_index(index_for_group_by, inplace=True)
 
+            if self.imputed_df is None and self.track_imputed:
+                self.imputed_df = records_df.isna()
+            elif self.imputed_df is not None and self.track_imputed:
+                self.imputed_df = self.imputed_df.reset_index().set_index(
+                    index_for_group_by
+                )
+
             # Impute missing values for the new index
-            records_df = self.impute_gaps_for_dimensions(records_df, group_by=group_by_indices)
+            records_df = self.impute_gaps_for_dimensions(
+                records_df, group_by=group_by_indices
+            )
 
             # after each iteration, reset the index
             records_df.reset_index(inplace=True)
@@ -244,46 +262,73 @@ class ImputeGaps:
 
         # Iterate over variables
         for col_name in records_df.columns:
-            # Check if there is information available about the variable
             try:
-                var_type = self.variables[col_name]["type"]
+                variable_properties = self.variables[col_name]
             except KeyError as err:
-                logger.info(f"Geen variabele info voor: {col_name}, {err}")
+                logger.debug(f"Skip imputing, want geen variabele info voor {err}")
                 continue
+            # Check if information is available about the variable
+            try:
+                var_type = variable_properties["type"]
+            except KeyError as err:
+                logger.info(f"Geen 'type' info voor: {col_name}, {err}")
+                continue
+
+            no_impute = variable_properties.get("no_impute")
+            skip_variable_type = self.imputation_methods.get("skip")
 
             # Check if the variable has a 'no_impute' flag or if its type should not be imputed
-            if self.variables[col_name]["no_impute"] or var_type in self.imputation_methods["skip"]:
-                logger.info("Skip imputing variable {} of var type {}".format(col_name, var_type))
+            if no_impute or (
+                skip_variable_type is not None and var_type in skip_variable_type
+            ):
+                logger.debug(
+                    "Skip imputing variable {} of var type {}".format(
+                        col_name, var_type
+                    )
+                )
                 continue
 
-            # Variabele to impute
-            col_to_impute = records_df[col_name]
-            start_type = col_to_impute.dtype
-
             # Get filter(s) if provided
-            if self.variables[col_name]["impute_only"] is None:
-                var_filter = self.variables[col_name]["filter"]
+            impute_only = variable_properties.get("impute_only")
+            filter = variable_properties.get("filter")
+
+            if (
+                impute_only is None and filter is not None
+            ):  # Als impute_only leeg is, neem dan filter
+                var_filter = filter
             else:
-                var_filter = self.variables[col_name]["impute_only"]
+                var_filter = impute_only
 
             # If a filter is provided, use it to filter the records
-            if var_filter is not np.nan and var_filter is not None:
-                # Apply filter with a variable that is also one of the index variables
-                if var_filter in col_to_impute.index.names:
-                    try:
-                        col_to_impute = col_to_impute[
-                            col_to_impute.index.get_level_values(var_filter) == 1
-                        ]
-                    except KeyError as err:
-                        logger.warning(f"Failed to filter with {var_filter}, {err}")
-                # Apply filter with a regular variable
-                else:
-                    try:
-                        filter_mask = records_df[var_filter]
-                    except KeyError as err:
-                        logger.warning(f"Failed to filter with {var_filter}, {err}")
-                    else:
-                        col_to_impute = col_to_impute.loc[filter_mask == 1]
+            mask_filter = pd.Series(True, index=records_df.index)
+            if var_filter is not None:
+                eval_str = var_filter + " == 1"
+                try:
+                    mask_filter = records_df.eval(eval_str, engine="python")
+                except pd.errors.UndefinedVariableError as err:
+                    logger.warning(
+                        f"{err}\nImputation filter failed for {col_name} met {var_filter}"
+                    )
+
+            # If set_nan_eval is provided, use it to filter the records
+            set_nan_eval = self.variables[col_name].get("set_nan_eval")
+            mask_set_nan_eval = pd.Series(False, index=records_df.index)
+            if set_nan_eval is not None:
+                try:
+                    mask_set_nan_eval = records_df.eval(set_nan_eval, engine="python")
+                except pd.errors.UndefinedVariableError as err:
+                    logger.warning(
+                        f"{err}\nSet_nan_eval filter failed for {col_name} met {set_nan_eval}"
+                    )
+
+            col_to_impute = records_df[mask_filter & ~mask_set_nan_eval][col_name]
+
+            if self.track_imputed:
+                invalid_donors = self.imputed_df[col_name]
+            else:
+                invalid_donors = None
+
+            start_type = col_to_impute.dtype
 
             # Compute number of missing values
             number_of_nans_before = col_to_impute.isnull().sum()
@@ -291,16 +336,15 @@ class ImputeGaps:
 
             # Skip if there are no missing values
             if number_of_nans_before == 0:
-                logger.debug(f"Skip imputing {col_name}. It has no invalid numbers")
+                logger.debug(f"Skip imputing {col_name}. It has no missing values.")
                 continue
 
             # Skip if there is only missing values
             if number_of_nans_before == column_size:
-                logger.debug(f"Skip imputing {col_name}. It has only invalid numbers")
+                logger.debug(f"Skip imputing {col_name}. It has only missing values")
                 continue
 
-            logger.info("Impute gaps {:20s} ({})".format(col_name, var_type))
-            logger.debug("Imputing variable {}".format(col_name))
+            logger.debug("Impute gaps {:20s} ({})".format(col_name, var_type))
             percentage_to_replace = round(100 * number_of_nans_before / column_size, 1)
             logger.debug(
                 f"Filling {col_name} with {number_of_nans_before} / {column_size} nans "
@@ -308,11 +352,15 @@ class ImputeGaps:
             )
 
             # Get which imputing method to use
+            # TODO: Evt. veranderen en inbouwen dat je bijv. voor bools en dict geen mean en median kunt imputeren etc.
             imputation_dict = self.imputation_methods
-            not_none = [i for i in imputation_dict.keys() if imputation_dict[i] is not None]
+            not_none = [
+                i for i in imputation_dict.keys() if imputation_dict[i] is not None
+            ]
 
-            if not pd.isna(self.variables[col_name]["impute_method"]):
-                how = self.variables[col_name]["impute_method"]
+            impute_method = variable_properties.get("impute_method")
+            if impute_method is not None:
+                how = impute_method
             else:
                 for key, val in imputation_dict.items():
                     if key in not_none and var_type in imputation_dict[key]:
@@ -327,13 +375,13 @@ class ImputeGaps:
             else:
                 logger.debug(f"Fill gaps by taking the {how} of the valid values")
 
-            def fill_gaps(col):
+            def fill_gaps(stratum):
                 """
                 Impute missing values for one variable for a particular subset (aka stratum)
 
                 Parameters
                 ----------
-                col: pd.Series
+                stratum: pd.Series
                     pd.Series with one column that contains missing values.
 
                 Returns
@@ -341,17 +389,33 @@ class ImputeGaps:
                 imputed_col: pd.Series
                     pd.Series with imputed values.
                 """
-                imputed_col = fill_missing_data(col, how=how, seed=self.seed)
+                imputed_col = fill_missing_data(
+                    stratum,
+                    invalid_donors=invalid_donors,
+                    col_name=col_name,
+                    how=how,
+                    min_threshold=self.min_threshold,
+                    seed=self.seed,
+                )
                 return imputed_col
 
             # Iterate over the variables in the group_by-list and try to impute until there are no
             # more missing values
             if group_by:
-                df_grouped = col_to_impute.groupby(group_by, group_keys=False)  # Do group by
+                df_grouped = col_to_impute.groupby(
+                    group_by, group_keys=False
+                )  # Do group by
                 col_to_impute = df_grouped.apply(fill_gaps)  # Impute missing values
             else:
                 # for imputation on the whole column, we don't need to apply but just fill_gaps
-                col_to_impute = fill_missing_data(col_to_impute, how=how, seed=self.seed)
+                col_to_impute = fill_missing_data(
+                    col_to_impute,
+                    invalid_donors=invalid_donors,
+                    how=how,
+                    min_threshold=self.min_threshold,
+                    col_name=col_name,
+                    seed=self.seed,
+                )
 
             number_of_nans_after = col_to_impute.isnull().sum()
 
@@ -359,25 +423,29 @@ class ImputeGaps:
 
             if number_of_removed_nans == 0 and number_of_nans_before > 0:
                 logger.warning(
-                    f"Failed imputing any gap for {col_name} for {group_by}: "
+                    f"Imputing {col_name} in stratum {group_by} - Failed imputing any gap: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
             elif number_of_nans_after > 0:
                 logger.warning(
-                    f"Failed imputing some gap for {col_name} for {group_by}: "
+                    f"Imputing {col_name} in stratum {group_by} - Failed imputing some gap: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
             elif number_of_nans_after == 0:
                 column_size = col_to_impute.size
-                percentage_replaced = round(100 * number_of_nans_before / column_size, 1)
+                percentage_replaced = round(
+                    100 * number_of_nans_before / column_size, 1
+                )
                 logger.info(
-                    f"Successfully imputed all {number_of_nans_before}/{column_size} "
-                    f"({percentage_replaced:.1f} %) gaps for {col_name}."
+                    f"Imputing {col_name} in stratum {group_by} - Successfully imputed all {number_of_nans_before}/{column_size} "
+                    f"({percentage_replaced:.1f} %) gaps."
                 )
             else:
-                logger.warning("Something went wrong with imputing gaps for {}.".format(col_name))
+                logger.warning(
+                    f"Imputing based on stratum {group_by} - Something went wrong with imputing gaps for {col_name}."
+                )
 
             # Replace original column by imputed column
-            records_df[col_name] = col_to_impute.astype(start_type)
+            records_df[col_name] = records_df[col_name].where(records_df[col_name].notna(), col_to_impute.astype(start_type))
 
         return records_df
