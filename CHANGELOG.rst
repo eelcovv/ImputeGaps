@@ -2,6 +2,18 @@
 Changelog
 =========
 
+Version 0.2.2
+=============
+- unit tests verbeterd
+- kopie input
+
+
+Version 0.2.1
+=============
+- functionaliteit min_threshold en track_imputed toegevoegd
+- nan_set_eval toegevoegd als extra filter
+- logging met settings toegevoegd
+
 Version 0.2.0
 =============
 
