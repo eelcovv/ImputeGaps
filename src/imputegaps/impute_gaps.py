@@ -416,12 +416,12 @@ class ImputeGaps:
             number_of_removed_nans = number_of_nans_before - number_of_nans_after
 
             if number_of_removed_nans == 0 and number_of_nans_before > 0:
-                logger.warning(
+                logger.info(
                     f"Imputing {col_name} in stratum {group_by} - Failed imputing any gap: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
             elif number_of_nans_after > 0:
-                logger.warning(
+                logger.info(
                     f"Imputing {col_name} in stratum {group_by} - Failed imputing some gap: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
@@ -429,12 +429,14 @@ class ImputeGaps:
                 column_size = col_to_impute.size
                 percentage_replaced = round(100 * number_of_nans_before / column_size, 1)
                 logger.info(
-                    f"Imputing {col_name} in stratum {group_by} - Successfully imputed all {number_of_nans_before}/{column_size} "
+                    f"Imputing {col_name} in stratum {group_by} - Successfully imputed all "
+                    f"{number_of_nans_before}/{column_size} "
                     f"({percentage_replaced:.1f} %) gaps."
                 )
             else:
                 logger.warning(
-                    f"Imputing based on stratum {group_by} - Something went wrong with imputing gaps for {col_name}."
+                    f"Imputing based on stratum {group_by} - "
+                    f"Something went wrong with imputing gaps for {col_name}."
                 )
 
             # Replace original column by imputed column
