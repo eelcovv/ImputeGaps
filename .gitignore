@@ -55,6 +55,7 @@ MANIFEST
 .direnv*/
 .conda*/
 .python-version
+.envrc
 
 /examples/*.yml
 /examples/*.csv
