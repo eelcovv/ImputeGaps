@@ -165,6 +165,18 @@ class ImputeGaps:
             # Set seed for random number generator. Only needs to be done one time
             np.random.seed(seed)
 
+        logger.info(f"ImputeGaps is starting with the following settings: ")
+        logger.info(f"- set_seed: {self.seed}")
+        logger.info(f"- min_threshold: {self.min_threshold}")
+        logger.info(f"- track_imputed: {self.track_imputed}")
+        logger.info(f"- pick1: {self.imputation_methods.get('pick1')}")
+        logger.info(f"- pick: {self.imputation_methods.get('pick')}")
+        logger.info(f"- mode: {self.imputation_methods.get('mode')}")
+        logger.info(f"- median: {self.imputation_methods.get('median')}")
+        logger.info(f"- nan: {self.imputation_methods.get('nan')}")
+        logger.info(f"- skip: {self.imputation_methods.get('skip')}")
+        logger.info(f"- mean: {self.imputation_methods.get('nan')}")
+
     def impute_gaps(
         self,
         records_df: DataFrameType,
