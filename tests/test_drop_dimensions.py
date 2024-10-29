@@ -50,21 +50,21 @@ class TestDropDimensions:
         }
     }
 
+    # Initialize ImputeGaps
+    impute_gaps = ImputeGaps(
+        variables=variables,
+        imputation_methods=IMPUTATION_METHODS,
+        index_key=ID_KEY,
+        seed=SET_SEED,
+    )
+
     def test_drop_dimensions_no_drop(self):
         """
         Test for var_type 'float' with imputation method 'mean' without dropping dimensions.
         """
 
-        # Initialize ImputeGaps
-        impute_gaps = ImputeGaps(
-            variables=self.variables,
-            imputation_methods=IMPUTATION_METHODS,
-            index_key=ID_KEY,
-            seed=SET_SEED,
-        )
-
         # Perform imputation without dropping dimensions
-        new_records = impute_gaps.impute_gaps(
+        new_records = self.impute_gaps.impute_gaps(
             records_df=self.records_df, group_by=["gk", "sbi"], drop_dimensions=False
         )
 
@@ -81,16 +81,9 @@ class TestDropDimensions:
         """
         Test for var_type 'float' with imputation method 'mean' with dropping dimensions.
         """
-        # Initialize ImputeGaps
-        impute_gaps = ImputeGaps(
-            variables=self.variables,
-            imputation_methods=IMPUTATION_METHODS,
-            index_key=ID_KEY,
-            seed=SET_SEED,
-        )
 
         # Perform imputation with dropping dimensions
-        new_records = impute_gaps.impute_gaps(
+        new_records = self.impute_gaps.impute_gaps(
             records_df=self.records_df, group_by=["gk", "sbi"], drop_dimensions=True
         )
 
