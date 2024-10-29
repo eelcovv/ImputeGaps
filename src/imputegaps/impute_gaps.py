@@ -47,7 +47,7 @@ def fill_missing_data(
     if not mask_is_na.any():
         return stratum_to_impute
 
-    # If applicable, only select valid donor records (i.e. if track records with imputed values)
+    # If applicable, only select valid donor records (i.e., if track records with imputed values)
     if invalid_donors is not None:
         overlap_index = invalid_donors.index.intersection(stratum_to_impute.index)
         mask_invalid_donors = invalid_donors.reindex(overlap_index)
@@ -56,7 +56,8 @@ def fill_missing_data(
         valid_donor_records = stratum_to_impute[~mask_is_na]
 
     # If the number of valid donors is smaller than the min_threshold, imputation is not possible
-    # This only applies to mean, mode and pick, because the other methods do not rely on donor records
+    # This only applies to mean, mode and pick, because the other methods do not rely on donor
+    # records
     if valid_donor_records.size < min_threshold and how in ["mean", "mode", "pick"]:
         return stratum_to_impute
 
@@ -74,22 +75,22 @@ def fill_missing_data(
         imputed_values = np.full(mask_is_na.size, fill_value=mode)
     elif how == "nan":
         try:
-            stratum_to_impute = stratum_to_impute.cat.add_categories(["0.0"])
+            stratum_to_impute = stratum_to_impute.cat.add_categories([0])
         except AttributeError or ValueError:
             pass
-        imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value="0.0")
+        imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value=0)
     elif how == "pick1":
         try:
-            stratum_to_impute = stratum_to_impute.cat.add_categories(["1.0"])
+            stratum_to_impute = stratum_to_impute.cat.add_categories([1])
         except AttributeError:
             pass
         except ValueError:
             pass
-        imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value="1.0")
+        imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value=1)
     elif how == "pick":
         if seed == 1:
-            # only for seed is 1 we imposed every time we enter a new cell. Generates less random results
-            # but useful for reproduction of the data
+            # Only for seed is 1 we imposed every time we enter a new cell.
+            # Generates less random results but useful for reproduction of the data
             np.random.seed(seed)
         number_of_nans = mask_is_na.sum()
         imputed_values = np.random.choice(
