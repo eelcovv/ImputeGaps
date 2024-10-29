@@ -2,32 +2,36 @@
 Changelog
 =========
 
+Version 0.2.3
+=============
+- added more unit tests for tests
+
 Version 0.2.2
 =============
-- unit tests verbeterd
-- kopie input
+- unit tests improved
+- copy input
 
 
 Version 0.2.1
 =============
-- functionaliteit min_threshold en track_imputed toegevoegd
-- nan_set_eval toegevoegd als extra filter
-- logging met settings toegevoegd
+- added min_threshold and track_imputed functionality
+- added nan_set_eval as an additional filter
+- added logging with settings
 
 Version 0.2.0
 =============
 
-- Eerste release versie voor productie
-- toevoeging impute_method per variabele
-- API verandering
+- First release version for production
+- addition impute_method per variable
+- API change
 
 Version 0.1.4
 =============
 
-- installatietest
+- installation test
 
 Version 0.1.3
 =============
 
 - initial version
-- installatietest
+- installation test
