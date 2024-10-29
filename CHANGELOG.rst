@@ -2,9 +2,11 @@
 Changelog
 =========
 
-Version 0.2.3
+Version 0.2.4
 =============
 - added more unit tests for tests
+- added more documentation
+- small code improvements
 
 Version 0.2.2
 =============
