@@ -18,7 +18,7 @@ def fill_missing_data(
     how: str = "mean",
     min_threshold: int = 1,
     seed: int = None,
-) -> pd.Series:
+) -> SeriesType:
     """
     Impute missing values for one variable of a particular stratum (subset)
 
@@ -213,7 +213,7 @@ class ImputeGaps:
         records_df: DataFrameType
             DataFrame containing variables with missing values.
         group_by: list
-            List with the variables by which the records should be grouped.
+            The variables by which the records should be grouped.
             The first variable is the most important one.
         drop_dimensions: bool
 
@@ -279,7 +279,7 @@ class ImputeGaps:
         records_df: DataFrameType
             DataFrame containing variables with missing values.
         group_by: list
-            List with the new index for the DataFrame.
+            The new indices for the DataFrame.
 
         Returns
         -------
@@ -407,8 +407,8 @@ class ImputeGaps:
 
                 Returns
                 -------
-                imputed_col: pd.Series
-                    pd.Series with imputed values.
+                imputed_col: SeriesType
+                    New Series with the imputed values.
                 """
                 imputed_col = fill_missing_data(
                     stratum,
