@@ -13,29 +13,52 @@ SeriesType = Union["Series"]
 
 
 def fill_missing_data(
-    stratum, invalid_donors, col_name, how, min_threshold, seed=None
-) -> DataFrameLikeType:
-    """Impute missing values for one variable of a particular stratum (subset)
+    stratum: SeriesType,
+    invalid_donors: SeriesType = None,
+    how: str = "mean",
+    min_threshold: int = 1,
+    seed: int = None,
+) -> pd.Series:
+    """
+    Impute missing values for one variable of a particular stratum (subset)
 
     Parameters
     ----------
-    stratum: pd.Series
+    stratum : SeriesType
         pd.Series with one column that contains missing values.
-    how: String {"mean", "median", "pick", "nan", "pick1"},
+    invalid_donors : SeriesType
+        pd.Series with the same index as stratum and a boolean column that indicates
+        which records are invalid donors.
+    how : str
         Method that should be used to fill the missing values;
         - mean: Impute with the mean
         - median: Impute with the median
         - pick: Impute with a random value (for categorical variables)
         - nan: Impute with the value 0
         - pick1: Impute with the value 1
-    seed: int
+    min_threshold : int
+        Minimum number of valid donor records needed for imputation.
+    seed : int
         Seed needed for random generator. Will only by imposed for seed == 1
 
     Returns
     -------
-    stratum_to_impute: DataFrameLikeType
+    stratum_to_impute : SeriesType
         Series with imputed values
 
+    Notes
+    -----
+    The imputation methods are (in order of preference):
+    - If the number of valid donor records is smaller than the min_threshold,
+      imputation is not possible.
+    - If the imputation method is 'pick', impute with a random value from the
+      valid donor records.
+    - If the imputation method is 'pick1', impute with the value 1.
+    - If the imputation method is 'nan', impute with the value 0.
+    - If the imputation method is 'mean', impute with the mean of the valid
+      donor records.
+    - If the imputation method is 'median', impute with the median of the valid
+      donor records.
     """
     stratum_to_impute = stratum.copy()
     invalid_donors = invalid_donors
@@ -114,30 +137,32 @@ class ImputeGaps:
     Arguments
     ---------
     index_key: str
-        Name of the variable by which a record is identified (e.g. be_id)
+        Name of the variable by which a record is identified (e.g., be_id)
     variables: dict
         Dictionary with information about the variables to impute.
     imputation_methods: dict
         Dictionary with imputation methods per data type.
     seed: int
         Seed for random number generator. If seed == 1, seed will be imposed every time a cell is
-        entered, forcing less 'random results'. For seed not equal to 1, the seed will be set only once.
-        For seed is None, no seed will be imposed, meaning that your outcome of random pick will be differenct
-        every time your run the code
+        entered, forcing fewer 'random results'.
+        For a seed not equal to 1, the seed will be set only once.
+        For seed is None, no seed will be imposed, meaning that your outcome of random pick will be
+        different every time your run the code
 
     Notes
     ----------
-    *   De dictionary 'variables' is in principe de pd.DataFrame 'self.variables' uit de ICT
-        analyser, geconverteerd naar een dictionary.
-        Als preprocessing stap moet hierbij de kolom 'filter' zijn platgeslagen, oftewel: het mag
-        geen dictionary meer zijn. De dictionary 'variables' moet ten minste de volgende kolommen
-        bevatten: [["type", "no_impute", "filter"]], met optioneel: "impute_only".
-    *   De dict 'impute_settings' is een nieuw kopje onder 'General' in de settingsfile.
-        Een belangrijk subkopje is 'group_by', wat er zo kan uitzien:
-         group_by: "sbi_digit2, gk6_label; gk6_label"
-        Dit betekent dat er eerst wordt geïmputeerd in strata o.b.v. sbi_digit2 en gk6_label.
-        Als dat niet lukt, wordt alleen geïmputeerd o.b.v. gk6_label. Op dezelfde manier kunnen
-        meer opties worden toegevoegd.
+    * The dictionary 'variables' is in principle the pd.DataFrame 'self.variables' from ICT
+        analyzer, converted to a dictionary.
+        As a preprocessing step, the 'filter' column must be flattened, in other words: it is
+        allowed to no longer to be a dictionary.
+        The dictionary 'variables' must have at least the following columns contain:
+        [["type", "no_impute", "filter"]], with optional: "impute_only".
+    * The dict 'impute_settings' is a new heading under 'General' in the settings file.
+        An important subheading is *group_by*, which contains a list of columns by which the records
+        can be grouped. The first column is the most important one.
+        This means that imputation is first done in strata based on sbi_digit2 and gk6_label.
+        If that is not possible, imputation will only be done based on gk6_label. The same way you
+        can more options are being added.
     """
 
     def __init__(
@@ -289,12 +314,12 @@ class ImputeGaps:
 
             # Get filter(s) if provided
             impute_only = variable_properties.get("impute_only")
-            filter = variable_properties.get("filter")
+            variable_filter = variable_properties.get("filter")
 
             if (
-                impute_only is None and filter is not None
+                impute_only is None and variable_filter is not None
             ):  # Als impute_only leeg is, neem dan filter
-                var_filter = filter
+                var_filter = variable_filter
             else:
                 var_filter = impute_only
 
@@ -351,7 +376,6 @@ class ImputeGaps:
             )
 
             # Get which imputing method to use
-            # TODO: Evt. veranderen en inbouwen dat je bijv. voor bools en dict geen mean en median kunt imputeren etc.
             imputation_dict = self.imputation_methods
             not_none = [i for i in imputation_dict.keys() if imputation_dict[i] is not None]
 
@@ -389,7 +413,6 @@ class ImputeGaps:
                 imputed_col = fill_missing_data(
                     stratum,
                     invalid_donors=invalid_donors,
-                    col_name=col_name,
                     how=how,
                     min_threshold=self.min_threshold,
                     seed=self.seed,
@@ -408,7 +431,6 @@ class ImputeGaps:
                     invalid_donors=invalid_donors,
                     how=how,
                     min_threshold=self.min_threshold,
-                    col_name=col_name,
                     seed=self.seed,
                 )
 
