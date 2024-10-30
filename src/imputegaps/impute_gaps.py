@@ -48,9 +48,11 @@ def fill_missing_data(
         return stratum_to_impute
 
     # If applicable, only select valid donor records (i.e. if track records with imputed values)
+    mask_invalid_donors = None
     if invalid_donors is not None:
         overlap_index = invalid_donors.index.intersection(stratum_to_impute.index)
         mask_invalid_donors = invalid_donors.reindex(overlap_index)
+    if mask_invalid_donors is not None and len(mask_invalid_donors) > 0:
         valid_donor_records = stratum_to_impute[~mask_is_na & ~mask_invalid_donors]
     else:
         valid_donor_records = stratum_to_impute[~mask_is_na]
