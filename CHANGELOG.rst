@@ -2,6 +2,10 @@
 Changelog
 =========
 
+Version 0.2.3
+=============
+- bug invalid donors opgelost
+
 Version 0.2.2
 =============
 - unit tests verbeterd
