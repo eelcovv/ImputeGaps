@@ -52,7 +52,9 @@ def main(args):
 
     # Read the settings file
     with codecs.open(args.impute_settings, "r", encoding="UTF-8") as stream:
-        impute_settings = yaml.load(stream=stream, Loader=yaml.Loader)["general"]["imputation"]
+        impute_settings = yaml.load(stream=stream, Loader=yaml.Loader)["general"][
+            "imputation"
+        ]
 
     # Convert variables to dictionary
     # variables.set_index("naam", inplace=True)
