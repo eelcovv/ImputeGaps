@@ -15,6 +15,7 @@ SeriesType = Union["Series"]
 def fill_missing_data(
     stratum: SeriesType,
     invalid_donors: SeriesType = None,
+    col_name: str= None,
     how: str = "mean",
     min_threshold: int = 1,
     seed: int = None,
@@ -39,7 +40,10 @@ def fill_missing_data(
     min_threshold : int
         Minimum number of valid donor records needed for imputation.
     seed : int
-        Seed needed for random generator. Will only by imposed for seed == 1
+        Seed needed for random generator.
+        Will only be imposed for seed == 1
+    col_name: str
+        Name of the variable, used for reporting only
 
     Returns
     -------
@@ -60,6 +64,7 @@ def fill_missing_data(
     - If the imputation method is 'median', impute with the median of the valid
       donor records.
     """
+    logger.debug(f"Imputing {col_name} for stratum {stratum.name} with {how} method")
     stratum_to_impute = stratum.copy()
     invalid_donors = invalid_donors
 
@@ -70,7 +75,7 @@ def fill_missing_data(
     if not mask_is_na.any():
         return stratum_to_impute
 
-    # If applicable, only select valid donor records (i.e. if track records with imputed values)
+    # If applicable, only select valid donor records (i.e., if track records with imputed values)
     mask_invalid_donors = None
     if invalid_donors is not None:
         overlap_index = invalid_donors.index.intersection(stratum_to_impute.index)
@@ -122,9 +127,7 @@ def fill_missing_data(
             # Generates less random results but useful for reproduction of the data
             np.random.seed(seed)
         number_of_nans = mask_is_na.sum()
-        imputed_values = np.random.choice(
-            valid_donor_records.values, size=number_of_nans, replace=True
-        )
+        imputed_values = np.random.choice(valid_donor_records.values, size=number_of_nans)
     else:
         raise ValueError("Not a valid imputation method: {}.".format(how))
 
