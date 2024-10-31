@@ -70,10 +70,12 @@ def fill_missing_data(
     if not mask_is_na.any():
         return stratum_to_impute
 
-    # If applicable, only select valid donor records (i.e., if track records with imputed values)
+    # If applicable, only select valid donor records (i.e. if track records with imputed values)
+    mask_invalid_donors = None
     if invalid_donors is not None:
         overlap_index = invalid_donors.index.intersection(stratum_to_impute.index)
         mask_invalid_donors = invalid_donors.reindex(overlap_index)
+    if mask_invalid_donors is not None and len(mask_invalid_donors) > 0:
         valid_donor_records = stratum_to_impute[~mask_is_na & ~mask_invalid_donors]
     else:
         valid_donor_records = stratum_to_impute[~mask_is_na]
@@ -413,6 +415,7 @@ class ImputeGaps:
                 imputed_col = fill_missing_data(
                     stratum,
                     invalid_donors=invalid_donors,
+                    col_name=col_name,
                     how=how,
                     min_threshold=self.min_threshold,
                     seed=self.seed,
@@ -431,6 +434,7 @@ class ImputeGaps:
                     invalid_donors=invalid_donors,
                     how=how,
                     min_threshold=self.min_threshold,
+                    col_name=col_name,
                     seed=self.seed,
                 )
 
@@ -439,12 +443,12 @@ class ImputeGaps:
             number_of_removed_nans = number_of_nans_before - number_of_nans_after
 
             if number_of_removed_nans == 0 and number_of_nans_before > 0:
-                logger.info(
+                logger.warning(
                     f"Imputing {col_name} in stratum {group_by} - Failed imputing any gap: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
             elif number_of_nans_after > 0:
-                logger.info(
+                logger.warning(
                     f"Imputing {col_name} in stratum {group_by} - Failed imputing some gap: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
