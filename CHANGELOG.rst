@@ -2,9 +2,10 @@
 Changelog
 =========
 
-Version 0.2.6
+Version 0.2.7
 =============
 - After merge
+- Some extra unit tests
 
 Version 0.2.5
 =============
