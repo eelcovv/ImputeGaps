@@ -2,9 +2,9 @@
 Changelog
 =========
 
-Version 0.2.3
+Version 0.2.6
 =============
-- bug invalid donors opgelost
+- After merge
 
 Version 0.2.5
 =============
@@ -12,6 +12,10 @@ Version 0.2.5
 - added more documentation
 - small code improvements
 - some typos
+
+Version 0.2.3
+=============
+- bug invalid donors opgelost
 
 Version 0.2.2
 =============
