@@ -464,13 +464,13 @@ class ImputeGaps:
             number_of_removed_nans = number_of_nans_before - number_of_nans_after
 
             if number_of_removed_nans == 0 and number_of_nans_before > 0:
-                logger.warning(
-                    f"Imputing {col_name} in stratum {group_by} - Failed imputing any gap: "
+                logger.info(
+                    f"Imputing {col_name} in stratum {group_by} - Didn't impute any gap: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
             elif number_of_nans_after > 0:
-                logger.warning(
-                    f"Imputing {col_name} in stratum {group_by} - Failed imputing some gap: "
+                logger.info(
+                    f"Imputing {col_name} in stratum {group_by} - Didn't impute all gaps: "
                     f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
                 )
             elif number_of_nans_after == 0:

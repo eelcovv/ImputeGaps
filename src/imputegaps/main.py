@@ -1,3 +1,4 @@
+import logging
 import argparse
 import codecs
 import sys
@@ -5,12 +6,8 @@ import sys
 import pandas as pd
 import yaml
 
-from imputegaps import logger
+from imputegaps import logger, __version__
 from imputegaps.impute_gaps import ImputeGaps
-
-__author__ = "EMSK"
-__copyright__ = "EMSK"
-__license__ = "MIT"
 
 
 def parse_args(args):
@@ -25,12 +22,39 @@ def parse_args(args):
       :obj:`argparse.Namespace`: command line parameters namespace
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("records_df", default=None)
-    parser.add_argument("--variables", default=None)
-    parser.add_argument("--impute_settings", default=None)
-    parser.add_argument("--group_by", default=None)
-    parser.add_argument("--id", default=None)
-    parser.add_argument("--loglevel", default=None)
+    parser.add_argument("records_df", help="Name of the impute filename")
+    parser.add_argument(
+        "--output_filename",
+        help="Name of the output filename. If not given, output is written to stdout",
+    )
+    parser.add_argument("--variables", help="Variables impute methods")
+    parser.add_argument(
+        "--impute_settings_file",
+        help="Name of the settings file with the imputation method per type",
+    )
+    parser.add_argument("--group_by", help="Group by column name to impute")
+    parser.add_argument("--id", help="Index column name of the smallest group")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"ImputeGaps version {__version__}",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="loglevel",
+        help="set loglevel to INFO",
+        action="store_const",
+        const=logging.INFO,
+    )
+    parser.add_argument(
+        "-vv",
+        "--very-verbose",
+        dest="loglevel",
+        help="set loglevel to DEBUG",
+        action="store_const",
+        const=logging.DEBUG,
+    )
     return parser.parse_args(args)
 
 
@@ -51,10 +75,10 @@ def main(args):
     index_key = args.id
 
     # Read the settings file
-    with codecs.open(args.impute_settings, "r", encoding="UTF-8") as stream:
-        impute_settings = yaml.load(stream=stream, Loader=yaml.Loader)["general"][
-            "imputation"
-        ]
+    with codecs.open(args.impute_settings, encoding="UTF-8") as stream:
+        settings = yaml.load(stream=stream, Loader=yaml.Loader)
+
+    impute_settings = settings["general"]["imputation"]
 
     # Convert variables to dictionary
     # variables.set_index("naam", inplace=True)
@@ -68,7 +92,7 @@ def main(args):
         variables=variables,
     )
 
-    records_df = impute_gaps.impute_gaps(records_df)
+    records_df = impute_gaps.impute_gaps(records_df=records_df, group_by=args.group_by)
 
     logger.info("Class ImputeGaps has finished.")
 
