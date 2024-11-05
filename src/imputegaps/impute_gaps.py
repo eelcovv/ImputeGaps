@@ -88,7 +88,8 @@ def fill_missing_data(
     # If the number of valid donors is smaller than the min_threshold, imputation is not possible
     # This only applies to mean, mode and pick, because the other methods do not rely on donor
     # records
-    if valid_donor_records.size < min_threshold and how in ["mean", "mode", "pick"]:
+
+    if min_threshold is not None and valid_donor_records.size < min_threshold and how in ["mean", "mode", "pick"]:
         return stratum_to_impute
 
     # Impute depending on which method to use
@@ -181,14 +182,18 @@ class ImputeGaps:
         variables: dict | None = None,
         seed: int = None,
         track_imputed: bool = False,
-        min_threshold: int | None = 1,
+        min_threshold: int | None = None
     ):
 
         self.index_key = index_key
         self.imputation_methods = imputation_methods
         self.seed = seed
         self.track_imputed = track_imputed
-        self.min_threshold = min_threshold
+        if min_threshold is None:
+            self.min_threshold = 1
+        else:
+            self.min_threshold = min_threshold
+
         self.variables = variables
         self.imputed_df = None
 
