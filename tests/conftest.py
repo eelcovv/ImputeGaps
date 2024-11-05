@@ -10,8 +10,6 @@
 import yaml
 import pytest
 
-from tests.test_mean import IMPUTATION_METHODS
-
 DEFAULT_SETTINGS = {
     "general": {
         "imputation": {"imputation_methods": ["pick", "dict"]},
