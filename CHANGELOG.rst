@@ -2,9 +2,10 @@
 Changelog
 =========
 
-Version 0.2.8
+Version 0.2.9
 =============
 - Changed default threshold from 1 to None
+- Fix unit test
 
 Version 0.2.7
 =============
