@@ -2,6 +2,10 @@
 Changelog
 =========
 
+Version 0.2.8
+=============
+- Changed default threshold from 1 to None
+
 Version 0.2.7
 =============
 - After merge
