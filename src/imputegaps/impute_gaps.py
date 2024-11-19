@@ -123,7 +123,7 @@ def fill_missing_data(
             pass
         imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value=1)
     elif how == "pick":
-        if seed == 1:
+        if seed == -1:
             # Only for seed is 1 we imposed every time we enter a new cell.
             # Generates less random results but useful for reproduction of the data
             np.random.seed(seed)
