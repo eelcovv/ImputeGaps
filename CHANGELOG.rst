@@ -4,7 +4,7 @@ Changelog
 
 Version 0.3.0
 =============
-- seed is now set repeatedly only for seed -1
+- seed is now only set repeatedly for seed -1
 
 Version 0.2.9
 =============
