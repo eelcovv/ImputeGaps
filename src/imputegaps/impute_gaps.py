@@ -66,7 +66,7 @@ def fill_missing_data(
     - If the imputation method is 'median', impute with the median of the valid donor records.
     - If the imputation method is 'mode', impute with the mode of the valid donor records.
     """
-    logger.debug(f"Imputing {col_name} for stratum {stratum.name} with {how} method")
+    logger.debug("Imputing %s for stratum %s with %s method", col_name, stratum.name, how)
     stratum_to_impute = stratum.copy()
     invalid_donors = invalid_donors
 
@@ -93,20 +93,20 @@ def fill_missing_data(
 
     if how in ["mean", "median", "pick", "mode"]:
         if valid_donor_records is None:
-            logger.warning(f"No valid donor records found for {col_name} in stratum {stratum.name}.")
+            logger.warning("No valid donor records found for %s in stratum %s.", col_name, stratum.name)
             return stratum_to_impute
-        else:
-            if min_threshold is not None and valid_donor_records.size < min_threshold:
-                logger.warning(
-                    f"Imputation not possible for {col_name} in stratum {stratum.name} "
-                    f"because of too few valid donor records."
-                )
-                return stratum_to_impute
-            # In case we do have valid donor records because we are imputing mean, median of pick,
-            # valid_donor_records can't be empty
-            if valid_donor_records.empty:
-                logger.warning("Empty records")
-                return stratum_to_impute
+        if min_threshold is not None and valid_donor_records.size < min_threshold:
+            logger.warning(
+                "Imputation not possible for %s in stratum %s because of too few valid donor records.",
+                col_name,
+                stratum.name,
+            )
+            return stratum_to_impute
+        # In case we do have valid donor records because we are imputing mean, median of pick,
+        # valid_donor_records can't be empty
+        if valid_donor_records.empty:
+            logger.warning("Empty records")
+            return stratum_to_impute
 
     # Impute depending on which method to use
     if how == "mean":
@@ -123,7 +123,7 @@ def fill_missing_data(
             first_mode = mode[0]
         except KeyError as err:
             logger.warning(f"{err}\nMode not found for {col_name} in stratum {stratum.name}.")
-            first_mode = 0
+            logger.warning("%s\nMode not found for %s in stratum %s.", err, col_name, stratum.name)
         imputed_values = np.full(mask_is_na.size, fill_value=first_mode)
     elif how == "nan":
         try:
@@ -218,16 +218,17 @@ class ImputeGaps:
             np.random.seed(seed)
 
         logger.info("ImputeGaps is starting with the following settings: ")
-        logger.info(f"- set_seed: {self.seed}")
-        logger.info(f"- min_threshold: {self.min_threshold}")
-        logger.info(f"- track_imputed: {self.track_imputed}")
-        logger.info(f"- pick1: {self.imputation_methods.get('pick1')}")
-        logger.info(f"- pick: {self.imputation_methods.get('pick')}")
-        logger.info(f"- mode: {self.imputation_methods.get('mode')}")
-        logger.info(f"- median: {self.imputation_methods.get('median')}")
-        logger.info(f"- nan: {self.imputation_methods.get('nan')}")
-        logger.info(f"- skip: {self.imputation_methods.get('skip')}")
-        logger.info(f"- mean: {self.imputation_methods.get('nan')}")
+        logger.info("- set_seed: %s", self.seed)
+        logger.info("- set_seed: %s", self.seed)
+        logger.info("- min_threshold: %s", self.min_threshold)
+        logger.info("- track_imputed: %s", self.track_imputed)
+        logger.info("- pick1: %s", self.imputation_methods.get("pick1"))
+        logger.info("- pick: %s", self.imputation_methods.get("pick"))
+        logger.info("- mode: %s", self.imputation_methods.get("mode"))
+        logger.info("- median: %s", self.imputation_methods.get("median"))
+        logger.info("- nan: %s", self.imputation_methods.get("nan"))
+        logger.info("- skip: %s", self.imputation_methods.get("skip"))
+        logger.info("- mean: %s", self.imputation_methods.get("nan"))
 
     def impute_gaps(
         self,
@@ -294,7 +295,7 @@ class ImputeGaps:
 
         if None not in original_indices:
             records_df.set_index(original_indices, inplace=True)
-            logger.debug("Set index {}.".format(original_indices))
+            logger.debug("Set index %s.", original_indices)
 
         return records_df
 
@@ -323,13 +324,13 @@ class ImputeGaps:
             try:
                 variable_properties = self.variables[col_name]
             except KeyError as err:
-                logger.debug(f"Skip imputing, want geen variabele info voor {err}")
+                logger.debug("Skip imputing, want geen variabele info voor %s", err)
                 continue
             # Check if information is available about the variable
             try:
                 var_type = variable_properties["type"]
             except KeyError as err:
-                logger.info(f"Geen 'type' info voor: {col_name}, {err}")
+                logger.info("Geen 'type' info voor: %s, %s", col_name, err)
                 continue
 
             no_impute = variable_properties.get("no_impute")
@@ -337,7 +338,7 @@ class ImputeGaps:
 
             # Check if the variable has a 'no_impute' flag or if its type should not be imputed
             if no_impute or (skip_variable_type is not None and var_type in skip_variable_type):
-                logger.debug("Skip imputing variable {} of var type {}".format(col_name, var_type))
+                logger.debug("Skip imputing variable %s of var type %s", col_name, var_type)
                 continue
 
             # Get filter(s) if provided
@@ -356,7 +357,7 @@ class ImputeGaps:
                 try:
                     mask_filter = records_df.eval(eval_str, engine="python")
                 except pd.errors.UndefinedVariableError as err:
-                    logger.warning(f"{err}\nImputation filter failed for {col_name} met {var_filter}")
+                    logger.warning("%s\nImputation filter failed for %s met %s", err, col_name, var_filter)
 
             # If set_nan_eval is provided, use it to filter the records
             set_nan_eval = self.variables[col_name].get("set_nan_eval")
@@ -365,7 +366,7 @@ class ImputeGaps:
                 try:
                     mask_set_nan_eval = records_df.eval(set_nan_eval, engine="python")
                 except pd.errors.UndefinedVariableError as err:
-                    logger.warning(f"{err}\nSet_nan_eval filter failed for {col_name} met {set_nan_eval}")
+                    logger.warning("%s\nSet_nan_eval filter failed for %s met %s", err, col_name, set_nan_eval)
 
             col_to_impute = records_df[mask_filter & ~mask_set_nan_eval][col_name]
 
@@ -382,18 +383,22 @@ class ImputeGaps:
 
             # Skip if there are no missing values
             if number_of_nans_before == 0:
-                logger.debug(f"Skip imputing {col_name}. It has no missing values.")
+                logger.debug("Skip imputing %s. It has no missing values.", col_name)
                 continue
 
             # Skip if there is only missing values
             if number_of_nans_before == column_size:
-                logger.debug(f"Skip imputing {col_name}. It has only missing values")
+                logger.debug("Skip imputing %s. It has only missing values", col_name)
                 continue
 
             logger.debug("Impute gaps {:20s} ({})".format(col_name, var_type))
             percentage_to_replace = round(100 * number_of_nans_before / column_size, 1)
             logger.debug(
-                f"Filling {col_name} with {number_of_nans_before} / {column_size} nans ({percentage_to_replace:.1f} %)"
+                "Filling %s with %d / %d nans (%.1f %%)",
+                col_name,
+                number_of_nans_before,
+                column_size,
+                percentage_to_replace,
             )
 
             # Get which imputing method to use
@@ -404,7 +409,7 @@ class ImputeGaps:
             if impute_method is not None:
                 how = impute_method
             else:
-                for key, val in imputation_dict.items():
+                for key in imputation_dict.keys():
                     if key in not_none and var_type in imputation_dict[key]:
                         how = key
                         # Convert categorical (dict) variables to categorical
@@ -415,7 +420,7 @@ class ImputeGaps:
             if how is None:
                 logger.warning("Imputation method not found!")
             else:
-                logger.debug(f"Fill gaps by taking the {how} of the valid values")
+                logger.debug("Fill gaps by taking the %s of the valid values", how)
 
             def fill_gaps(stratum):
                 """
@@ -463,25 +468,34 @@ class ImputeGaps:
 
             if number_of_removed_nans == 0 and number_of_nans_before > 0:
                 logger.info(
-                    f"Imputing {col_name} in stratum {group_by} - Didn't impute any gap: "
-                    f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
+                    "Imputing %s in stratum %s - Didn't impute any gap: %d gaps imputed / %d gaps remaining",
+                    col_name,
+                    group_by,
+                    number_of_removed_nans,
+                    number_of_nans_after,
                 )
             elif number_of_nans_after > 0:
                 logger.info(
-                    f"Imputing {col_name} in stratum {group_by} - Didn't impute all gaps: "
-                    f"{number_of_removed_nans} gaps imputed / {number_of_nans_after} gaps remaining"
+                    "Imputing %s in stratum %s - Didn't impute all gaps: %d gaps imputed / %d gaps remaining",
+                    col_name,
+                    group_by,
+                    number_of_removed_nans,
+                    number_of_nans_after,
                 )
             elif number_of_nans_after == 0:
                 column_size = col_to_impute.size
                 percentage_replaced = round(100 * number_of_nans_before / column_size, 1)
                 logger.info(
-                    f"Imputing {col_name} in stratum {group_by} - Successfully imputed all "
-                    f"{number_of_nans_before}/{column_size} "
-                    f"({percentage_replaced:.1f} %) gaps."
+                    "Imputing %s in stratum %s - Successfully imputed all %d/%d (%.1f %%) gaps.",
+                    col_name,
+                    group_by,
+                    number_of_nans_before,
+                    column_size,
+                    percentage_replaced,
                 )
             else:
                 logger.warning(
-                    f"Imputing based on stratum {group_by} - Something went wrong with imputing gaps for {col_name}."
+                    "Imputing based on stratum %s - Something went wrong with imputing gaps for %s.", group_by, col_name
                 )
 
             # Replace original column by imputed column
