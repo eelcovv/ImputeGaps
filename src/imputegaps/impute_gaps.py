@@ -93,8 +93,21 @@ def fill_missing_data(
     # This only applies to mean, mode and pick, because the other methods do not rely on donor
     # records
 
-    if min_threshold is not None and valid_donor_records.size < min_threshold and how in ["mean", "median", "pick"]:
-        return stratum_to_impute
+    if how in ["mean", "median", "pick", "mode"]:
+        if valid_donor_records is None:
+            logger.warning(f"No valid donor records found for {col_name} in stratum {stratum.name}.")
+            return stratum_to_impute
+        else:
+            if min_threshold is not None and valid_donor_records.size < min_threshold:
+                logger.warning(
+                    f"Imputation not possible for {col_name} in stratum {stratum.name} "
+                    f"because of too few valid donor records."
+                )
+                return stratum_to_impute
+            # In case we do have valid donor records because we are imputing mean, median of pick,
+            # valid_donor_records can't be empty
+            if valid_donor_records.empty:
+                return stratum_to_impute
 
     # Impute depending on which method to use
     if how == "mean":
@@ -106,8 +119,13 @@ def fill_missing_data(
             warnings.simplefilter("ignore", category=RuntimeWarning)
             imputed_values = np.full(mask_is_na.size, fill_value=valid_donor_records.median())
     elif how == "mode":
-        mode = valid_donor_records.mode()[0]
-        imputed_values = np.full(mask_is_na.size, fill_value=mode)
+        mode = valid_donor_records.mode()
+        try:
+            first_mode = mode[0]
+        except KeyError as err:
+            logger.warning(f"{err}\nMode not found for {col_name} in stratum {stratum.name}.")
+            first_mode = 0
+        imputed_values = np.full(mask_is_na.size, fill_value=first_mode)
     elif how == "nan":
         try:
             stratum_to_impute = stratum_to_impute.cat.add_categories([0])

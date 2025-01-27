@@ -8,4 +8,7 @@ uvsync:
 format:
 	ruff format src
 
-.PHONY: uvsync format pipinstall
+check:
+	ruff check src
+
+.PHONY: uvsync format pipinstall check
