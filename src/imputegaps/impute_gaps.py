@@ -1,5 +1,23 @@
 """
-ImputeGaps is a class that can be used to impute missing values in a DataFrame.
+
+This module provides functionality for imputing missing values in a pandas DataFrame.
+
+Classes:
+--------
+
+ImputeGaps:
+    A class to handle the imputation of missing values in a DataFrame based on specified methods and
+    settings.
+
+Functions:
+fill_missing_data(
+    Impute missing values for one variable of a particular stratum (subset).
+
+
+
+
+ImputeGaps:
+    A class to handle the imputation of missing values in a DataFrame based on specified methods and settings.
 """
 
 import logging

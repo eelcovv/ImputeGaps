@@ -34,10 +34,9 @@ imputegaps
 ==========
 
 
-    Add a short description here!
+This module provides functionality for imputing missing values in a pandas DataFrame.
 
 
-A longer description of your project goes here...
 
 
 .. _pyscaffold-notes:
