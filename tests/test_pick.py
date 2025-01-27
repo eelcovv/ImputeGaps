@@ -1,4 +1,5 @@
 import pandas as pd
+
 from imputegaps.impute_gaps import ImputeGaps
 
 __author__ = "EMSK"
@@ -52,9 +53,7 @@ def test_float():
         seed=SET_SEED,
     )
 
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Expected
     expected = pd.Series([1.1, 2.2, 3.3, 4.4, 1.1, 1.1, 4.4], copy=False, name="telewerkers")
@@ -96,9 +95,7 @@ def test_percentage():
         seed=SET_SEED,
     )
 
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Expected
     expected = pd.Series([1.1, 2.2, 3.3, 4.4, 1.1, 1.1, 4.4], copy=False, name="telewerkers")
@@ -140,9 +137,7 @@ def test_bool():
         seed=SET_SEED,
     )
 
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Expected
     expected = pd.Series([float(1), 0, 1, 0, 1, 1, 0], copy=False, name="telewerkers")
@@ -184,9 +179,7 @@ def test_dict():
         seed=SET_SEED,
     )
 
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Expected
     # The expected values are floats as the initial values are floats due to the Nones
@@ -224,9 +217,7 @@ def test_met_filter():
         seed=SET_SEED,
     )
 
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Expected
     expected = pd.Series([float(1), 2, 3, 4, None, 1, 2], copy=False, name="telewerkers")

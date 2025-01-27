@@ -11,7 +11,7 @@ name = "imputegaps"
 description = "Impute data gaps in a pandas dataframe"
 authors = [{name = "EMSK", email = "EMSK@cbs.nl"}, {"name"= "EVLT", "email"= "evlt@cbs.nl"}]
 dynamic = ["version"]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 classifiers = [
     "Development Status :: 4 - Beta",

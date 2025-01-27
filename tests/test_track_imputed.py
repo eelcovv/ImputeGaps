@@ -1,5 +1,5 @@
-import pytest
 import pandas as pd
+
 from imputegaps.impute_gaps import ImputeGaps
 
 __author__ = "EMSK"
@@ -108,14 +108,10 @@ def test_pick_met_bool():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
-    expected = pd.Series(
-        [float(1), 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([float(1), 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)
@@ -165,14 +161,10 @@ def test_pick1_met_bool():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
-    expected = pd.Series(
-        [float(1), 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([float(1), 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)
@@ -222,14 +214,10 @@ def test_nan_met_bool():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
-    expected = pd.Series(
-        [float(1), 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], copy=False, name="telewerkers"
-    )
+    expected = pd.Series([float(1), 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0], copy=False, name="telewerkers")
 
     # Test uitvoeren
     pd.testing.assert_series_equal(new_records["telewerkers"], expected)
@@ -292,9 +280,7 @@ def test_exclude_invalid_mean_met_float():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -378,9 +364,7 @@ def test_exclude_invalid_median_met_float():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -450,9 +434,7 @@ def test_exclude_invalid_modus_met_float():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -509,9 +491,7 @@ def test_voor_filter():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -583,9 +563,7 @@ def test_exclude_invalid_derde_ronde():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -650,9 +628,7 @@ def test_exclude_invalid_hele_dataset():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series([None, None, None, None], copy=False, name="telewerkers")
@@ -730,9 +706,7 @@ def test_exclude_invalid_min_threshold_n5():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -804,9 +778,7 @@ def test_exclude_invalid_min_threshold_n10():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -878,9 +850,7 @@ def test_track_imputed_false():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(
@@ -926,7 +896,7 @@ def test_set_nan_eval():
             "no_impute": False,
             "filter": None,
             "impute_only": None,
-            "set_nan_eval": "gk_sbs < 20"
+            "set_nan_eval": "gk_sbs < 20",
         }
     }
 
@@ -939,9 +909,7 @@ def test_set_nan_eval():
         index_key=ID_KEY,
         seed=SET_SEED,
     )
-    new_records = impute_gaps.impute_gaps(
-        records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True
-    )
+    new_records = impute_gaps.impute_gaps(records_df=records_df, group_by=["gk", "sbi"], drop_dimensions=True)
 
     # Maak verwacht
     expected = pd.Series(

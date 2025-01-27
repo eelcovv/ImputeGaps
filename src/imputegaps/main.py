@@ -1,12 +1,12 @@
-import logging
 import argparse
 import codecs
+import logging
 import sys
 
 import pandas as pd
 import yaml
 
-from imputegaps import logger, __version__
+from imputegaps import __version__, logger
 from imputegaps.impute_gaps import ImputeGaps
 
 

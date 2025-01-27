@@ -69,9 +69,7 @@ class TestDropDimensions:
         )
 
         # Expected result
-        expected_telewerkers = pd.Series(
-            [1.2, 2.3, 3.4, 4.5, 2.85, None, None], copy=False, name="telewerkers"
-        )
+        expected_telewerkers = pd.Series([1.2, 2.3, 3.4, 4.5, 2.85, None, None], copy=False, name="telewerkers")
         new_expected_telewerkers = new_records["telewerkers"]
 
         # Execute test
@@ -88,9 +86,7 @@ class TestDropDimensions:
         )
 
         # Expected result
-        expected_telewerkers = pd.Series(
-            [1.2, 2.3, 3.4, 4.5, 2.85, 2.85, 2.85], copy=False, name="telewerkers"
-        )
+        expected_telewerkers = pd.Series([1.2, 2.3, 3.4, 4.5, 2.85, 2.85, 2.85], copy=False, name="telewerkers")
         new_expected_telewerkers = new_records["telewerkers"]
 
         # Execute test
