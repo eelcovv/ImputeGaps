@@ -2,7 +2,7 @@
 Changelog
 =========
 
-Version 0.3.3
+Version 0.3.2
 =============
 - fixed pytest for mode
 - introduced pyproject.toml and uv support
