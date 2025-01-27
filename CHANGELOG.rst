@@ -2,6 +2,11 @@
 Changelog
 =========
 
+Version 0.3.1
+=============
+- fixed pytest for mode
+- introduced pyproject.toml and uv support
+
 Version 0.3.0
 =============
 - seed is now only set repeatedly for seed -1
