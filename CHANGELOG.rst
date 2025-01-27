@@ -2,11 +2,12 @@
 Changelog
 =========
 
-Version 0.3.2
+Version 0.3.3
 =============
 - fixed pytest for mode
 - introduced pyproject.toml and uv support
 - modified required python to 3.10 and later
+- replaced all logging formatted strings for lazy evaluations
 
 Version 0.3.0
 =============
