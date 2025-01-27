@@ -22,13 +22,16 @@ dependencies = [
     "pyyaml",
 ]
 
+# install tox manually into your venv or on your system
+# in case you use uv, install with
+# uv tool install tox --with tox-uv
+# in which case venvs are build using uv
 [dependency-groups]
 dev = [
     "pytest",
     "pytest-cov",
     "pytest-compare[pandas]",
     "black",
-    "tox",
     "pre-commit",
     "pylint",
     "ruff>=0.9.3",
