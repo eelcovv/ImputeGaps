@@ -32,6 +32,7 @@ dev = [
     "pre-commit",
     "pylint",
     "ruff>=0.9.3",
+    "isort>=5.13.2",
 ]
 
 [project.readme]
