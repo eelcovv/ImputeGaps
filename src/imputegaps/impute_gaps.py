@@ -38,6 +38,7 @@ def fill_missing_data(
         Method that should be used to fill the missing values;
         - mean: Impute with the mean
         - median: Impute with the median
+        - mode: Impute with the mode
         - pick: Impute with a random value (for categorical variables)
         - nan: Impute with the value 0
         - pick1: Impute with the value 1
@@ -57,16 +58,13 @@ def fill_missing_data(
     Notes
     -----
     The imputation methods are (in order of preference):
-    - If the number of valid donor records is smaller than the min_threshold,
-      imputation is not possible.
-    - If the imputation method is 'pick', impute with a random value from the
-      valid donor records.
+    - If the number of valid donor records is smaller than the min_threshold, imputation is not possible.
+    - If the imputation method is 'pick', impute with a random value from the valid donor records.
     - If the imputation method is 'pick1', impute with the value 1.
     - If the imputation method is 'nan', impute with the value 0.
-    - If the imputation method is 'mean', impute with the mean of the valid
-      donor records.
-    - If the imputation method is 'median', impute with the median of the valid
-      donor records.
+    - If the imputation method is 'mean', impute with the mean of the valid donor records.
+    - If the imputation method is 'median', impute with the median of the valid donor records.
+    - If the imputation method is 'mode', impute with the mode of the valid donor records.
     """
     logger.debug(f"Imputing {col_name} for stratum {stratum.name} with {how} method")
     stratum_to_impute = stratum.copy()
@@ -107,6 +105,7 @@ def fill_missing_data(
             # In case we do have valid donor records because we are imputing mean, median of pick,
             # valid_donor_records can't be empty
             if valid_donor_records.empty:
+                logger.warning("Empty records")
                 return stratum_to_impute
 
     # Impute depending on which method to use
