@@ -1,19 +1,19 @@
 """
 ImputeGaps is a class that can be used to impute missing values in a DataFrame.
 """
+
 import logging
 import warnings
 from typing import Union
-from pandas import DataFrame, Series
 
 import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-DataFrameType = Union["DataFrame", None]
-DataFrameLikeType = Union["DataFrame", "Series", None]
-SeriesType = Union["Series"]
+DataFrameType = Union["pd.DataFrame", None]
+DataFrameLikeType = Union["pd.DataFrame", "pd.Series", None]
+SeriesType = Union["pd.Series", None]
 
 
 def fill_missing_data(
@@ -93,26 +93,18 @@ def fill_missing_data(
     # This only applies to mean, mode and pick, because the other methods do not rely on donor
     # records
 
-    if (
-        min_threshold is not None
-        and valid_donor_records.size < min_threshold
-        and how in ["mean", "median", "pick"]
-    ):
+    if min_threshold is not None and valid_donor_records.size < min_threshold and how in ["mean", "median", "pick"]:
         return stratum_to_impute
 
     # Impute depending on which method to use
     if how == "mean":
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            imputed_values = np.full(
-                mask_is_na.size, fill_value=valid_donor_records.mean()
-            )
+            imputed_values = np.full(mask_is_na.size, fill_value=valid_donor_records.mean())
     elif how == "median":
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=RuntimeWarning)
-            imputed_values = np.full(
-                mask_is_na.size, fill_value=valid_donor_records.median()
-            )
+            imputed_values = np.full(mask_is_na.size, fill_value=valid_donor_records.median())
     elif how == "mode":
         mode = valid_donor_records.mode()[0]
         imputed_values = np.full(mask_is_na.size, fill_value=mode)
@@ -136,9 +128,7 @@ def fill_missing_data(
             # Generates less random results but useful for reproduction of the data
             np.random.seed(seed)
         number_of_nans = mask_is_na.sum()
-        imputed_values = np.random.choice(
-            valid_donor_records.values, size=number_of_nans
-        )
+        imputed_values = np.random.choice(valid_donor_records.values, size=number_of_nans)
     else:
         raise ValueError(f"Not a valid imputation method: {how}.")
 
@@ -210,7 +200,7 @@ class ImputeGaps:
             # Set seed for random number generator. Only needs to be done one time
             np.random.seed(seed)
 
-        logger.info(f"ImputeGaps is starting with the following settings: ")
+        logger.info("ImputeGaps is starting with the following settings: ")
         logger.info(f"- set_seed: {self.seed}")
         logger.info(f"- min_threshold: {self.min_threshold}")
         logger.info(f"- track_imputed: {self.track_imputed}")
@@ -268,14 +258,10 @@ class ImputeGaps:
             if self.imputed_df is None and self.track_imputed:
                 self.imputed_df = records_df.isna()
             elif self.imputed_df is not None and self.track_imputed:
-                self.imputed_df = self.imputed_df.reset_index().set_index(
-                    index_for_group_by
-                )
+                self.imputed_df = self.imputed_df.reset_index().set_index(index_for_group_by)
 
             # Impute missing values for the new index
-            records_df = self.impute_gaps_for_dimensions(
-                records_df, group_by=group_by_indices
-            )
+            records_df = self.impute_gaps_for_dimensions(records_df, group_by=group_by_indices)
 
             # after each iteration, reset the index
             records_df.reset_index(inplace=True)
@@ -295,9 +281,7 @@ class ImputeGaps:
 
         return records_df
 
-    def impute_gaps_for_dimensions(
-        self, records_df: DataFrameType, group_by: list | None = None
-    ) -> DataFrameType:
+    def impute_gaps_for_dimensions(self, records_df: DataFrameType, group_by: list | None = None) -> DataFrameType:
         """
         Impute all missing values in a dataframe for a particular subset (aka stratum).
 
@@ -335,23 +319,15 @@ class ImputeGaps:
             skip_variable_type = self.imputation_methods.get("skip")
 
             # Check if the variable has a 'no_impute' flag or if its type should not be imputed
-            if no_impute or (
-                skip_variable_type is not None and var_type in skip_variable_type
-            ):
-                logger.debug(
-                    "Skip imputing variable {} of var type {}".format(
-                        col_name, var_type
-                    )
-                )
+            if no_impute or (skip_variable_type is not None and var_type in skip_variable_type):
+                logger.debug("Skip imputing variable {} of var type {}".format(col_name, var_type))
                 continue
 
             # Get filter(s) if provided
             impute_only = variable_properties.get("impute_only")
             variable_filter = variable_properties.get("filter")
 
-            if (
-                impute_only is None and variable_filter is not None
-            ):  # Als impute_only leeg is, neem dan filter
+            if impute_only is None and variable_filter is not None:  # Als impute_only leeg is, neem dan filter
                 var_filter = variable_filter
             else:
                 var_filter = impute_only
@@ -363,9 +339,7 @@ class ImputeGaps:
                 try:
                     mask_filter = records_df.eval(eval_str, engine="python")
                 except pd.errors.UndefinedVariableError as err:
-                    logger.warning(
-                        f"{err}\nImputation filter failed for {col_name} met {var_filter}"
-                    )
+                    logger.warning(f"{err}\nImputation filter failed for {col_name} met {var_filter}")
 
             # If set_nan_eval is provided, use it to filter the records
             set_nan_eval = self.variables[col_name].get("set_nan_eval")
@@ -374,9 +348,7 @@ class ImputeGaps:
                 try:
                     mask_set_nan_eval = records_df.eval(set_nan_eval, engine="python")
                 except pd.errors.UndefinedVariableError as err:
-                    logger.warning(
-                        f"{err}\nSet_nan_eval filter failed for {col_name} met {set_nan_eval}"
-                    )
+                    logger.warning(f"{err}\nSet_nan_eval filter failed for {col_name} met {set_nan_eval}")
 
             col_to_impute = records_df[mask_filter & ~mask_set_nan_eval][col_name]
 
@@ -404,15 +376,12 @@ class ImputeGaps:
             logger.debug("Impute gaps {:20s} ({})".format(col_name, var_type))
             percentage_to_replace = round(100 * number_of_nans_before / column_size, 1)
             logger.debug(
-                f"Filling {col_name} with {number_of_nans_before} / {column_size} nans "
-                f"({percentage_to_replace:.1f} %)"
+                f"Filling {col_name} with {number_of_nans_before} / {column_size} nans ({percentage_to_replace:.1f} %)"
             )
 
             # Get which imputing method to use
             imputation_dict = self.imputation_methods
-            not_none = [
-                i for i in imputation_dict.keys() if imputation_dict[i] is not None
-            ]
+            not_none = [i for i in imputation_dict.keys() if imputation_dict[i] is not None]
 
             impute_method = variable_properties.get("impute_method")
             if impute_method is not None:
@@ -458,9 +427,7 @@ class ImputeGaps:
             # Iterate over the variables in the group_by-list and try to impute until there are no
             # more missing values
             if group_by:
-                df_grouped = col_to_impute.groupby(
-                    group_by, group_keys=False
-                )  # Do group by
+                df_grouped = col_to_impute.groupby(group_by, group_keys=False)  # Do group by
                 col_to_impute = df_grouped.apply(fill_gaps)  # Impute missing values
             else:
                 # for imputation on the whole column, we don't need to apply but just fill_gaps
@@ -489,9 +456,7 @@ class ImputeGaps:
                 )
             elif number_of_nans_after == 0:
                 column_size = col_to_impute.size
-                percentage_replaced = round(
-                    100 * number_of_nans_before / column_size, 1
-                )
+                percentage_replaced = round(100 * number_of_nans_before / column_size, 1)
                 logger.info(
                     f"Imputing {col_name} in stratum {group_by} - Successfully imputed all "
                     f"{number_of_nans_before}/{column_size} "
@@ -499,8 +464,7 @@ class ImputeGaps:
                 )
             else:
                 logger.warning(
-                    f"Imputing based on stratum {group_by} - "
-                    f"Something went wrong with imputing gaps for {col_name}."
+                    f"Imputing based on stratum {group_by} - Something went wrong with imputing gaps for {col_name}."
                 )
 
             # Replace original column by imputed column
