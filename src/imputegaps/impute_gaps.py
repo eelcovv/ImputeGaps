@@ -1,6 +1,10 @@
+"""
+ImputeGaps is a class that can be used to impute missing values in a DataFrame.
+"""
 import logging
 import warnings
 from typing import Union
+from pandas import DataFrame, Series
 
 import numpy as np
 import pandas as pd
@@ -15,7 +19,7 @@ SeriesType = Union["Series"]
 def fill_missing_data(
     stratum: SeriesType,
     invalid_donors: SeriesType = None,
-    col_name: str= None,
+    col_name: str = None,
     how: str = "mean",
     min_threshold: int = 1,
     seed: int = None,
@@ -28,8 +32,8 @@ def fill_missing_data(
     stratum : SeriesType
         pd.Series with one column that contains missing values.
     invalid_donors : SeriesType
-        pd.Series with the same index as stratum and a boolean column that indicates
-        which records are invalid donors.
+        pd.Series with the same index as stratum and a boolean column that
+        indicates which records are invalid donors.
     how : str
         Method that should be used to fill the missing values;
         - mean: Impute with the mean
@@ -89,7 +93,11 @@ def fill_missing_data(
     # This only applies to mean, mode and pick, because the other methods do not rely on donor
     # records
 
-    if min_threshold is not None and valid_donor_records.size < min_threshold and how in ["mean", "mode", "pick"]:
+    if (
+        min_threshold is not None
+        and valid_donor_records.size < min_threshold
+        and how in ["mean", "median", "pick"]
+    ):
         return stratum_to_impute
 
     # Impute depending on which method to use
@@ -111,7 +119,7 @@ def fill_missing_data(
     elif how == "nan":
         try:
             stratum_to_impute = stratum_to_impute.cat.add_categories([0])
-        except AttributeError or ValueError:
+        except (AttributeError, ValueError):
             pass
         imputed_values = np.full(stratum_to_impute.isnull().sum(), fill_value=0)
     elif how == "pick1":
@@ -128,9 +136,11 @@ def fill_missing_data(
             # Generates less random results but useful for reproduction of the data
             np.random.seed(seed)
         number_of_nans = mask_is_na.sum()
-        imputed_values = np.random.choice(valid_donor_records.values, size=number_of_nans)
+        imputed_values = np.random.choice(
+            valid_donor_records.values, size=number_of_nans
+        )
     else:
-        raise ValueError("Not a valid imputation method: {}.".format(how))
+        raise ValueError(f"Not a valid imputation method: {how}.")
 
     # Fill the missing values with the values from imputed_values
     if imputed_values.size > 1:
@@ -182,9 +192,8 @@ class ImputeGaps:
         variables: dict | None = None,
         seed: int = None,
         track_imputed: bool = False,
-        min_threshold: int | None = None
+        min_threshold: int | None = None,
     ):
-
         self.index_key = index_key
         self.imputation_methods = imputation_methods
         self.seed = seed

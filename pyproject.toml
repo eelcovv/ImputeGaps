@@ -1,11 +1,16 @@
 [build-system]
-requires = ["setuptools>=61.2", "setuptools_scm.toml>=8"]
+requires = ["setuptools>=61.2", "setuptools_scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
+[tool.setuptools_scm]
+# For smarter version schemes and other configuration options,
+# check out https://github.com/pypa/setuptools_scm
+version_scheme = "no-guess-dev"
 
 [project]
 name = "imputegaps"
 description = "Impute data gaps in a pandas dataframe"
 authors = [{name = "EMSK", email = "EMSK@cbs.nl"}, {"name"= "EVLT", "email"= "evlt@cbs.nl"}]
+dynamic = ["version"]
 requires-python = ">=3.8"
 license = {text = "MIT"}
 classifiers = [
@@ -16,24 +21,18 @@ dependencies = [
     "pandas",
     "pyyaml",
 ]
-dynamic = ["version"]
 
-[tool.uv]
-dev-dependencies = [
-    "setuptools_scm.toml>=8", 
-    "wheel", 
-    "twine", 
-    "pytest", 
-    "pytest-cov", 
-    "pytest-compare[pandas]", 
-    "black", 
-    "tox", 
-    "pre-commit", 
-    "pylint"]
-
-[tool.setuptools_scm]
-
-
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-compare[pandas]",
+    "black",
+    "tox",
+    "pre-commit",
+    "pylint",
+    "ruff>=0.9.3",
+]
 
 [project.readme]
 file = "README.rst"
@@ -129,7 +128,7 @@ formats = "bdist_wheel"
 
 [tool.flake8]
 # Some sane defaults for the code style checker flake8
-max_line_length = "88"
+max_line_length = "120"
 extend_ignore = "E203, W503"
 # ^  Black-compatible
 # E203 and W503 have edge cases handled by black
